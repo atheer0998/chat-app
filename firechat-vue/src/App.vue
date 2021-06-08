@@ -1,9 +1,12 @@
 <template>
   <div>
-    <div class="view login" v-if="state.usename ===''|| state.username=== null">
+    <div
+      class="view login"
+      v-if="state.username === '' || state.username === null"
+    >
       <form class="login-form" @submit.prevent="Login">
         <div class="form-inner">
-          <h1>Login to fireChat</h1>
+          <h1>Login</h1>
           <label for="username">Username</label>
           <input
             type="text"
@@ -16,7 +19,36 @@
     </div>
 
     <div class="view chat" v-else>
-      <h1>Chat view</h1>
+      <header>
+        <button class="logout" @click="Logout">Logout</button>
+        <h1>Welcome, {{ state.username }}</h1>
+      </header>
+      <section class="chat-box">
+        <div
+          v-for="message in state.messages"
+          :key="message.key"
+          :class="
+            message.username == state.username
+              ? 'message current-user'
+              : 'message'
+          "
+        >
+          <div class="message-inner">
+            <div class="username">{{ message.username }}</div>
+            <div class="content">{{ message.content }}</div>
+          </div>
+        </div>
+      </section>
+      <footer>
+        <form @submit.prevent="SendMessage">
+          <input
+            type="text"
+            v-model="inputMessage"
+            placeholder="Write a message..."
+          />
+          <input type="submit" value="Send" />
+        </form>
+      </footer>
     </div>
   </div>
 </template>
@@ -28,22 +60,60 @@ import db from "./db";
 export default {
   setup() {
     const inputUsername = ref("");
+    const inputMessage = ref("");
     const state = reactive({
       username: "",
-      messages: []
+      messages: [],
     });
-    const Login =()=> {
-      if(inputUsername.value !="" || inputUsername.value !=null){
+    const Login = () => {
+      if (inputUsername.value != "" || inputUsername.value != null) {
         state.username = inputUsername.value;
-        inputUsername.value="";
-
+        inputUsername.value = "";
       }
+    };
+
+    const Logout =() => {
+      state.username="";
     }
+
+    const SendMessage = () => {
+      const messagesRef = db.database().ref("messages");
+
+      if (inputMessage.value === "" || inputMessage.value === null) {
+        return;
+      }
+      const message = {
+        username: state.username,
+        content: inputMessage.value,
+      };
+      messagesRef.push(message);
+      inputMessage.value = "";
+    };
+
+    onMounted(() => {
+      const messagesRef = db.database().ref("messages");
+
+      messagesRef.on("value", (snapshot) => {
+        const data = snapshot.val();
+        let messages = [];
+        Object.keys(data).forEach((key) => {
+          messages.push({
+            id: key,
+            username: data[key].username,
+            content: data[key].content,
+          });
+        });
+
+        state.messages = messages;
+      });
+    });
     return {
       inputUsername,
       Login,
-      state
-
+      state,
+      inputMessage,
+      SendMessage,
+      Logout
     };
   },
 };
@@ -62,7 +132,7 @@ export default {
   display: flex;
   justify-content: center;
   min-height: 100vh;
-  background-color: #ea526f;
+  background-color: #6495ed;
 
   &.login {
     align-items: center;
@@ -118,7 +188,7 @@ export default {
           display: block;
           width: 100%;
           padding: 10px 15px;
-          background-color: #ea526f;
+          background-color: #6495ed;
           border-radius: 8px;
           color: #fff;
           font-size: 18px;
@@ -126,7 +196,7 @@ export default {
         }
         &:focus-within {
           label {
-            color: #ea526f;
+            color: #6495ed;
           }
           input[type="text"] {
             background-color: #fff;
@@ -202,7 +272,7 @@ export default {
             .content {
               color: #fff;
               font-weight: 600;
-              background-color: #ea526f;
+              background-color: #6495ed;
             }
           }
         }
@@ -246,7 +316,7 @@ export default {
           display: block;
           padding: 10px 15px;
           border-radius: 0px 8px 8px 0px;
-          background-color: #ea526f;
+          background-color: #6495ed;
           color: #fff;
           font-size: 18px;
           font-weight: 700;

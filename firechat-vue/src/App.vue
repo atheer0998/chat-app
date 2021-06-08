@@ -1,4 +1,5 @@
 <template>
+
   <div>
     <div
       class="view login"
@@ -11,7 +12,7 @@
           <input
             type="text"
             v-model="inputUsername"
-            placeholder="Please enter your usename..."
+            placeholder="Please enter your username..."
           />
           <input type="submit" value="Login" />
         </div>
@@ -51,6 +52,7 @@
       </footer>
     </div>
   </div>
+
 </template>
 
 <script>
